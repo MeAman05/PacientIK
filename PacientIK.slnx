@@ -8,4 +8,7 @@
   <Folder Name="/WebSite/">
     <Project Path="PacientikWebSite/PacientikWebSite.csproj" Id="a9f1f4a8-acb5-431a-9693-a9136d659380" />
   </Folder>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
 </Solution>

@@ -1,0 +1,6 @@
+services:
+  pacientik:
+    image: ${DOCKER_REGISTRY-}pacientik
+    build:
+      context: .
+      dockerfile: PacientIK/Dockerfile
