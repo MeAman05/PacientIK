@@ -10,11 +10,7 @@ using PacientIK.Jwt;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Configuration.Sources.Clear();
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
-    .AddEnvironmentVariables();
+
 builder.Services.AddControllers();
 builder.Services.AddScoped<JwtService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -41,8 +37,18 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-    options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    options.AddPolicy("AllowAll", p => p
+        .WithOrigins(
+            "https://localhost:7211",
+            "http://localhost:5211",
+            "https://localhost:7000",
+            "https://pacientikwebsite.onrender.com" 
+        )
+        .SetIsOriginAllowed(_ => true) 
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()
+    );
 });
 
 builder.Services.AddOutputCache(o =>
@@ -62,7 +68,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseCors();
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
