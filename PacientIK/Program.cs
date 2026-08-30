@@ -58,13 +58,13 @@ builder.Services.AddOutputCache(o =>
     o.DefaultExpirationTimeSpan = TimeSpan.FromMinutes(5);
 });
 var app = builder.Build();
-
+app.UseSwagger();
+app.UseSwaggerUI();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+   
 }
 
 app.UseRouting();
