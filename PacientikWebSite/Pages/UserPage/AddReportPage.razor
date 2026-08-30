@@ -1,0 +1,96 @@
+﻿@page "/addrep"
+@using PacientikWebSite.Services;
+@using PacientikWebSite.Models.ReportModels;
+@using PacientikWebSite.Models.Lech;
+@inject ReportService reportService
+@inject LechService lechService
+@if (iscreating)
+{
+   <a>.загружается</a>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label>Имя Пациента</label>
+            <input class="form-control" @bind="model.pacientname" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label>Цена</label>
+            <input class="form-control" @bind="model.price" />
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label>Лечение</label>
+        <div class="border rounded p-2" style="max-height:200px; overflow-y:auto;">
+            @foreach (var s in lechModel)
+            {
+                <div class="form-check">
+                    <input type="checkbox"
+                           checked="@model.lechids.Contains(s.Id)"
+                           @onchange="e => Toggle(e, s.Id)" />
+                    <label>@s.Name</label>
+                </div>
+            }
+        </div>
+        <div class="col-md-4 mb-3">
+            <label>Период посещения</label>
+            <input class="form-control" @bind="model.period" />
+        </div>
+    </div>
+
+    <div>
+        <button class="btn btn-dark w-100" @onclick="CreateReport" disabled="@iscreating">
+            @(iscreating ? "Создание..." : "Создать")
+        </button>
+    </div>
+}
+
+@code {
+
+    CreateReportModel model = new();
+    List<LechModel> lechModel = new();
+    bool iscreating = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetLeches();
+    }
+    async Task GetLeches()
+    {
+        lechModel = await lechService.GetLeches();
+    }
+    async Task CreateReport()
+    {
+        try
+        {
+            iscreating = true;
+            await reportService.AddNewReport(model);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return;
+        }
+        finally
+        {
+            iscreating = false;
+        }
+    }
+
+    async Task EnterButton(KeyboardEventArgs args)
+    {
+        if(args.Key == "Enter")
+        {
+            await CreateReport();
+        }
+    }
+
+    void Toggle(ChangeEventArgs e, int id)
+    {
+        var check = (bool)e.Value;
+        if (check) model.lechids.Add(id);
+        else model.lechids.Remove(id);
+    }
+}

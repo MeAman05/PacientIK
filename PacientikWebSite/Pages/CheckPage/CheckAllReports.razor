@@ -1,0 +1,149 @@
+﻿@page "/allreports"
+@using PacientikWebSite.Models.ReportModels;
+@using PacientikWebSite.Models.Lech;
+@using PacientikWebSite.Services
+@inject ReportService service
+@inject LechService lechService
+@inject NavigationManager nav
+
+@if (isloading)
+{
+    <div class="d-flex justify-content-center mt-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Пациент</label>
+                <input type="text" class="form-control" placeholder="Имя пациента..."
+                       @bind="pacientname" @bind:event="oninput" @onkeyup="EnterKey" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Врач / Отправитель</label>
+                <input type="text" class="form-control" placeholder="Имя врача..."
+                       @bind="sendername" @bind:event="oninput" @onkeyup="EnterKey" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Лечение</label>
+                <select class="form-select" @bind="lechid">
+                    <option value="0">Все лечения</option>
+                    @foreach (var lech in lechModels)
+                    {
+                        <option value="@lech.Id">@lech.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-primary w-100" @onclick="GetReports">
+                    <i class="fas fa-search"></i> Поиск
+                </button>
+                <button class="btn btn-secondary" @onclick="ClearFilters">Сброс</button>
+            </div>
+        </div>
+    </div>
+
+    @if (isloading)
+    {
+        <div class="d-flex justify-content-center mt-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+        </div>
+    }
+    else if (!reports.Any())
+    {
+        <div class="alert alert-info mt-4">Отчетов по фильтру не найдено</div>
+    }
+    else
+    {
+        <div class="table-responsive mt-3">
+            <table class="table table-striped table-hover table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Пациент</th>
+                        <th>Врач</th>
+                        <th>Лечение</th>
+                        <th>Период</th>
+                        <th>Цена</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in reports)
+                    {
+                        <tr>
+                            <td>@item.pacientname</td>
+                            <td>@item.sender</td>
+                            <td>@item.leches</td>
+                            <td>@item.period дней</td>
+                            <td>@item.price.ToString("N2") сом</td>
+                            <td><a href="/report/@item.id" class="btn btn-warning btn-sm">Посмотреть</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+    }
+
+}
+
+@code {
+
+    string? sendername;
+    string? pacientname;
+    int lechid;
+    List<ReportModel> reports = new();
+    List<LechModel> lechModels = new();
+    bool isloading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetReports();
+        await GetLeches();
+    }
+
+    async Task GetReports()
+    {
+        try
+        {
+            isloading = true;
+            reports = await service.GetAllReport(pacientname, sendername, lechid);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return;
+        }
+        finally
+        {
+            isloading = false;
+        }
+    }
+
+    async Task GetLeches()
+    {
+        lechModels = await lechService.GetLeches();
+    }
+
+    async Task EnterKey(KeyboardEventArgs e)
+    {
+        if(e.Key == "Enter")
+        {
+            await GetReports();
+        }
+    }
+
+    async Task ClearFilters()
+    {
+        pacientname = null;
+        sendername = null;
+        lechid = 0;
+        await GetReports();
+    }
+}

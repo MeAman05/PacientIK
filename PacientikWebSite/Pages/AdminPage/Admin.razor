@@ -1,0 +1,18 @@
+﻿@page "/adminpage"
+@using PacientikWebSite.Services;
+@inject LoginService service
+<h3>Admin</h3>
+
+<a class="btn btn-primary" href="/getallusers" role="button">Все пользователи</a>
+<a class="btn btn-primary" href="/adduser" role="button">Добавить пользователя</a>
+<a class="btn btn-primary" href="/getspeces" role="button">Все специальности</a>
+<a class="btn btn-primary" href="/allreports" role="button">Все отчёты</a>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+       
+    }
+
+    
+}

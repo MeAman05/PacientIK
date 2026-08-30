@@ -1,0 +1,23 @@
+﻿@page "/"
+@using Pacientikapplication.Services;
+@using Pacientikapplication.Models;
+@inject LoginService logservice
+@inject NavigationManager nav
+
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        var stat = await logservice.CheckToken();
+        if(stat == null || string.IsNullOrEmpty(stat))
+        {
+            nav.NavigateTo("/loginn");
+        }
+        else
+        {
+            nav.NavigateTo($"{logservice.page}");
+        }
+        
+    }
+
+
+}

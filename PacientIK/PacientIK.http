@@ -1,0 +1,6 @@
+@PacientIK_HostAddress = http://localhost:5298
+
+GET {{PacientIK_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

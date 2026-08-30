@@ -1,0 +1,43 @@
+﻿@page "/"
+@using System.Security.Claims
+@using PacientikWebSite.Services;
+@inject IJSRuntime js
+@inject NavigationManager nav
+@inject AuthState state
+
+
+
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await state.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (string.IsNullOrEmpty(role))
+        {
+            nav.NavigateTo("/loginpage");
+            return;
+        }
+
+        switch (role)
+        {
+            case "Admin":
+                nav.NavigateTo("/adminpage");
+                break;
+
+            case "User":
+                nav.NavigateTo("/userpage");
+                break;
+
+            case "Checker":
+                nav.NavigateTo("/checkpage");
+                break;
+
+            default:
+                nav.NavigateTo("/loginpage");
+                break;
+        }
+    }
+}

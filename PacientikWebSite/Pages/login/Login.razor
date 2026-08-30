@@ -1,0 +1,98 @@
+﻿@page "/loginpage"
+@using PacientikWebSite.Services;
+@using PacientikWebSite.Models;
+@inject LoginService loginService
+@inject NavigationManager nav
+@inject IJSRuntime js
+<h3>Login</h3>
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo">P</div>
+            <h3>Добро пожаловать</h3>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(error))
+        {
+            <div class="alert-error">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                <span>@error</span>
+            </div>
+        }
+
+        <div class="form">
+            <div class="field">
+                <label>Код / Логин</label>
+                <div class="input-wrap">
+                    <span class="icon">👤</span>
+                    <input @bind="model.Code" @bind:event="oninput" placeholder="Введите код" class="input" disabled="@isloading" @onkeydown="PressedKey" />
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Пароль</label>
+                <div class="input-wrap">
+                    <span class="icon">🔒</span>
+                    <input @bind="model.Password" @bind:event="oninput" type="password" placeholder="••••••••" class="input" disabled="@isloading" @onkeydown="PressedKey" />
+                </div>
+            </div>
+
+            <button class="btn-login" @onclick="LOgin" disabled="@isloading">
+                @if (isloading)
+                {
+                    <span class="spinner"></span>
+                    <span>Вход...</span>
+                }
+                else
+                {
+                    <span>Войти</span>
+                }
+            </button>
+        </div>
+
+        <div class="footer">
+            <span>Забыли пароль? Обратитесь к администратору</span>
+        </div>
+    </div>
+</div>
+@code {
+
+    LoginModel model = new LoginModel();
+    bool isloading = false;
+    string error = " ";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await loginService.Logout();
+    }
+
+    async Task LOgin()
+    {
+        if(string.IsNullOrEmpty(model.Code) || string.IsNullOrEmpty(model.Password))
+        {
+            error = "Логин или пароль пустой";
+        }
+        try
+        {
+            isloading = true;
+            await loginService.Login(model);
+            nav.NavigateTo("/");
+        }
+        catch(Exception ex)
+        {
+            error = $"{ex.Message}";
+        }
+        finally
+        {
+            isloading = false;
+        }
+    }
+
+    async Task PressedKey(KeyboardEventArgs e)
+    {
+        if(e.Key == "Enter")
+        {
+            await LOgin();
+        }
+    }
+}

@@ -1,0 +1,250 @@
+﻿@page "/myreports"
+@using PacientikWebSite.Services;
+@using PacientikWebSite.Models.ReportModels;
+@using PacientikWebSite.Models.Lech;
+@inject ReportService service
+@inject NavigationManager nav
+@inject ReportState state
+@inject LechService lechservice;
+@if (isloading)
+{
+    <div class="d-flex justify-content-center mt-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+}
+else if (!models.Any())
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="search-container">
+                    <input type="text" class="form-control search-input" placeholder="Search..." @bind="name" @bind:event="oninput" @onkeyup="EnterKey">
+                    <i class="fas fa-search search-icon" @onclick="GetReports"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-info mt-3">Отчетов пока нет</div>
+}
+else
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="search-container">
+                    <input type="text" class="form-control search-input" placeholder="Search..." @bind="name" @bind:event="oninput" @onkeyup="EnterKey">
+                    <i class="fas fa-search search-icon" @onclick="GetReports"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-hover table-bordered align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Пациент</th>
+                    <th>Врач</th>
+                    <th>Лечение</th>
+                    <th>Период</th>
+                    <th>Цена</th>
+                    <th> </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in models)
+                {
+                    <tr>
+                        <td>@item.pacientname</td>
+                        <td>@item.sender</td>
+                        <td>
+                            @foreach (var lechName in item.leches)
+                            {
+                                <span class="badge bg-primary me-1">@lechName</span>
+                            }
+                        </td>
+                        <td>@item.period дней</td>
+                        <td>@item.price.ToString("N2") сом</td>
+                        <td><a href="/report/@item.id" class="btn btn-warning">Посмотреть</a>
+                            <button class="btn btn-success mt-3" @onclick="() => SelectModel(item.id)">
+                                Изменить
+                            </button>
+                            <button class="btn btn-danger" @onclick="() => DeleteReport(item.id)" disabled="@isdeleting">
+                                @if (isdeleting)
+                                {
+                                    <span class="spinner-border spinner-border-sm">Удаление...</span>
+                                }
+                                else
+                                {
+                                    <span>Удалить</span>
+                                }
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <button class="btn btn-success mt-3" @onclick="GoSelectReport">
+            Редактировать все (@models.Count)
+        </button>
+    </div>
+
+    @if (selected != null)
+    {
+        <MudPaper Class="pa-4 rounded-xl" Style="max-width:350px" Elevation="0">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Редактирование</MudText>
+                <MudTextField @bind-Value="selected.pacientname" Label="Пациент" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudGrid Spacing="1">
+                    <MudItem xs="6"><MudNumericField @bind-Value="selected.price" Label="Цена" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
+                    <MudItem xs="6"><MudTextField @bind-Value="selected.period" Label="Период" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
+                </MudGrid>
+
+                <MudSelect T="int"
+                           MultiSelection="true"
+                           SelectedValues="selected.lechids"
+                           SelectedValuesChanged="OnLechChanged"
+                           Label="Врачи"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense" Dense="true">
+                    @foreach (var l in lechmodels)
+                    {
+                        <MudSelectItem Value="@l.Id">@l.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-2">
+                    <MudButton OnClick="@(() => selected = null)" Size="Size.Small">Отмена</MudButton>
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => ChangeReport(currentid))" Loading="@isupdating" Size="Size.Small">Сохранить</MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    }
+}
+
+@code {
+    public List<ReportModel> models = new();
+    public List<LechModel> lechmodels = new();
+    UpdateReportModel selected = null;
+    bool isloading = false;
+    bool isupdating = false;
+    bool isdeleting = false;
+    string name = "";
+    string Lech = "";
+    int currentid { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await GetReports();
+        await GetLeches();
+    }
+    void OnLechChanged(IEnumerable<int> values)
+    {
+        selected.lechids = values.ToHashSet();
+    }
+    async Task GetReports()
+    {
+        try
+        {
+            isloading = true;
+            models = await service.GetOnwReports(name);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return;
+        }
+        finally
+        {
+            isloading = false;
+        }
+    }
+
+    async Task GoSelectReport()
+    {
+        state.Selected = models.Select(x => new SelectedReportModel
+        {
+            id = x.id,
+            pacientname = x.pacientname,
+            sender = x.sender,
+            price = x.price,
+            lech = x.leches,
+            period = x.period
+        }).ToList();
+
+        nav.NavigateTo("/editreport");
+    }
+
+    async Task EnterKey(KeyboardEventArgs key)
+    {
+        if(name != null)
+        {
+            if(key.Key == "Enter")
+            {
+                await GetReports();
+            }
+        }
+    }
+
+    async Task SelectModel(int id)
+    {
+        var currentmodel = models.FirstOrDefault(r => r.id == id);
+        currentid = currentmodel.id;
+        selected = new UpdateReportModel
+        {
+            pacientname = currentmodel.pacientname,
+            price = currentmodel.price,
+            period = currentmodel.period,
+            lechids = currentmodel.lechids != null ? currentmodel.lechids.ToHashSet() : new HashSet<int>()
+        };
+    }
+
+    async Task ChangeReport(int id)
+    {
+        try
+        {
+            isupdating = true;
+            await service.ChangeReport(selected, id);
+            selected = null;
+            currentid = 0;
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return;
+        }
+        finally
+        {
+            isupdating = false;
+
+        }
+    }
+
+    async Task GetLeches()
+    {
+        lechmodels = await lechservice.GetLeches();
+    }
+
+    async Task DeleteReport(int id)
+    {
+        try
+        {
+            isdeleting = true;
+            models.RemoveAll(r => r.id == id);
+
+            await service.DeleteReport(id);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return;
+        }
+        finally
+        {
+            isdeleting = false;
+        }
+        
+    }
+}

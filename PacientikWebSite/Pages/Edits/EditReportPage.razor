@@ -1,0 +1,116 @@
+﻿@page "/editreport"
+@using PacientikWebSite.Models.ReportModels;
+@using DocumentFormat.OpenXml
+@using DocumentFormat.OpenXml.Spreadsheet
+@using DocumentFormat.OpenXml.Packaging
+@inject ReportState reportState
+@inject NavigationManager Nav
+@inject IJSRuntime js
+
+<HeadContent>
+    <script type="text/javascript" src="js/download.js"></script>
+</HeadContent>
+
+<table class="table table-bordered table-sm">
+    <thead class="table-dark">
+        <tr><th>Пациент</th><th>Леч (через запятую)</th><th>Период</th><th>Цена</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var item in reportState.Selected)
+        {
+            <tr>
+                <td><input @bind="item.pacientname" class="form-control form-control-sm border-0" /></td>
+                <td>
+                    <input value="@string.Join(", ", item.lech)"
+                           @onchange="@(e => item.lech = e.Value!.ToString()!.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList())"
+                           class="form-control form-control-sm border-0" />
+                </td>
+                <td><input @bind="item.period" type="number" class="form-control form-control-sm border-0" /></td>
+                <td><input @bind="item.price" type="number" step="0.01" class="form-control form-control-sm border-0" /></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    <button class="btn btn-success" @onclick="ExportAndDownloadExelFIle">Скачать отчёт</button>
+</div>
+
+@code {
+
+    async Task ExportAndDownloadExelFIle()
+    {
+        MemoryStream ms = new MemoryStream();
+
+        SpreadsheetDocument spreadsheetdoc = SpreadsheetDocument.Create(ms, SpreadsheetDocumentType.Workbook);
+
+        WorkbookPart workbookPart = spreadsheetdoc.AddWorkbookPart();
+
+        workbookPart.Workbook = new Workbook();
+
+        WorksheetPart worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+        var shetdata = new SheetData();
+        worksheetPart.Worksheet = new Worksheet(shetdata);
+
+        Row headerrows = new Row();
+        String[] headresnames = { "ФИО пациента", "Лечение", "Период лечения", "Цена" };
+        Cell[] headercells = new Cell[headresnames.Length];
+
+        for (var i = 0; i < headresnames.Length; i++)
+        {
+            headercells[i] = new Cell();
+            headercells[i].CellValue = new CellValue(headresnames[i]);
+            headerrows.Append(headercells[i]);
+        }
+
+        shetdata.Append(headerrows);
+
+        Row datarow;
+        Cell[] datacells;
+
+        foreach(var dats in reportState.Selected)
+        {
+            datarow = new Row();
+            datacells = new Cell[4];
+
+            datacells[0] = new Cell();
+            datacells[0].CellValue = new CellValue(dats.pacientname);
+            datarow.Append(datacells[0]);
+
+            datacells[1] = new Cell();
+            var lechString = string.Join(", ", dats.lech);
+            datacells[1].CellValue = new CellValue(lechString);
+            datacells[1].DataType = CellValues.String;
+            datarow.Append(datacells[1]);
+
+            datacells[2] = new Cell();
+            datacells[2].CellValue = new CellValue(dats.period);
+            datarow.Append(datacells[2]);
+
+            datacells[3] = new Cell();
+            datacells[3].CellValue = new CellValue(dats.price);
+            datarow.Append(datacells[3]);
+
+            shetdata.Append(datarow);
+        }
+
+        Sheets sheets = workbookPart.Workbook.AppendChild(new Sheets());
+
+        Sheet sheet = new Sheet()
+            {
+                Id = workbookPart.GetIdOfPart(worksheetPart),
+                SheetId = 1,
+                Name = "MyShhet"
+            };
+
+        sheets.Append(sheet);
+
+        workbookPart.Workbook.Save();
+
+        spreadsheetdoc.Save();
+
+        spreadsheetdoc.Dispose();
+
+        await js.InvokeVoidAsync("downloadFile", "Отчёт.xlsx", Convert.ToBase64String(ms.ToArray()));
+    }
+}

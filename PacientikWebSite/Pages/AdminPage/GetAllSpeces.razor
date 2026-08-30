@@ -1,0 +1,51 @@
+﻿@page "/getspeces"
+@using PacientikWebSite.Services
+@using PacientikWebSite.Models.SpecModels
+@inject SpecService specService
+    
+@if (isloading)
+{
+    <a>.загузка</a>
+}
+else
+{
+    foreach(var items in models)
+    {
+        <div class="card">
+            <div class="card-body">
+                @items.Name
+            </div>
+        </div>
+    }
+}
+
+<a>@error</a>
+
+@code {
+
+    List<SpecModel> models = new List<SpecModel>();
+    bool isloading = false;
+    string error = "";
+    protected override async Task OnInitializedAsync()
+    {
+        await GetSpeces();
+    }
+
+    async Task GetSpeces()
+    {
+        try
+        {
+            isloading = true;
+            models = await specService.GetSpeces();
+        }
+        catch(Exception ex)
+        {
+            error = $"{ex.Message}";
+            return;
+        }
+        finally
+        {
+            isloading = false;
+        }
+    }
+}

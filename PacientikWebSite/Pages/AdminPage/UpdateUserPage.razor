@@ -1,0 +1,108 @@
+﻿@page "/edit/{id:guid}"
+@using PacientikWebSite.Services;
+@using PacientikWebSite.Models.UserModels;
+@using PacientikWebSite.Models.SpecModels;
+@using System.Security.Claims
+@inject AuthState state
+@inject UserService userService
+@inject SpecService specService
+@inject NavigationManager nav
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label>Имя</label>
+        <input class="form-control" @bind="model.Name" placeholder="@model.Name" />
+    </div>
+    <div class="col-md-4 mb-3">
+        <label>Фамилия</label>
+        <input class="form-control" @bind="model.Surname" placeholder="@model.Surname"/>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label>Отчество</label>
+        <input class="form-control" @bind="model.Lastname" placeholder="@model.Lastname"/>
+    </div>
+    <div class="col-md-6 mb-3">
+        <a>@selectedspec</a>
+        <label>Специалист</label>
+        <select class="form-select" @bind="model.Spec">
+            <option value="0">-- выбери --</option>
+            @foreach (var s in speces)
+            {
+                <option value="@s.Id">@s.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label>Роль</label>
+        <input class="form-control" @bind="model.Role" placeholder="@model.Role" />
+    </div>
+</div>
+<button class="btn btn-dark w-100" @onclick="UpdateUser" disabled="@isupdating">
+    @(isupdating ? "Создание..." : "Создать")
+</button>
+
+@code {
+
+    [Parameter] public Guid id { get; set; }
+
+    UpdateUserModel model = new();
+    List<SpecModel> speces = new();
+    bool isupdating = false;
+    string? selectedspec { get; set; }
+    string specname = "";
+    protected override async Task OnInitializedAsync()
+    {
+        var authstate = await state.GetAuthenticationStateAsync();
+
+        var user = authstate.User;
+
+        var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+        var uid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (role != "Admin")
+        {
+            nav.NavigateTo("/");
+            return;
+        }
+
+        await GetSpeces();
+        await GetUser();
+        
+    }
+
+    async Task GetUser()
+    {
+        var getuser = await userService.GetUserById(id);
+
+        model.Name = getuser.name;
+        model.Surname = getuser.surname;
+        model.Lastname = getuser.lastname;
+        selectedspec = getuser.spec;
+        model.Age = getuser.age;
+        model.Role = getuser.role;
+    }
+
+    async Task GetSpeces()
+    {
+        speces = await specService.GetSpeces();
+    }
+
+    async Task UpdateUser()
+    {
+        try
+        {
+            isupdating = true;
+            await userService.UpdateUser(model, id);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return;
+        }
+        finally
+        {
+            isupdating = false;
+        }
+    }
+}

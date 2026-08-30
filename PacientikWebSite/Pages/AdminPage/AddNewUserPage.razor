@@ -1,0 +1,163 @@
+﻿@page "/adduser"
+@inject IJSRuntime js
+@inject NavigationManager nav
+@using PacientikWebSite.Services;
+@using PacientikWebSite.Models.UserModels;
+@using PacientikWebSite.Models.SpecModels;
+@using System.Security.Claims
+@inject AuthState state
+@inject UserService userService
+@inject SpecService specService
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Добавить пользователя</h5>
+                </div>
+                <div class="card-body">
+                    @if (error.Trim() != "")
+                    {
+                        <div class="alert alert-danger">@error</div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label>Имя</label>
+                            <input class="form-control" @bind="model.name" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label>Фамилия</label>
+                            <input class="form-control" @bind="model.surname" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label>Отчество</label>
+                            <input class="form-control" @bind="model.lastname" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label>Возраст</label>
+                            <input type="number" class="form-control" @bind="model.age" />
+                        </div>
+                        <div class="col-md-9 mb-3">
+                            <label>Код</label>
+                            <input class="form-control" @bind="model.code" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Пароль</label>
+                        <input type="password" class="form-control" @bind="model.pwd" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-9 mb-3">
+                            <label>Роль</label>
+                            <input class="form-control" @bind="model.role" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Специалист</label>
+                            <select class="form-select" @bind="model.spec">
+                                <option value="0">-- выбери --</option>
+                                @foreach (var s in specModels)
+                                {
+                                    <option value="@s.Id">@s.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Фото</label>
+                        <InputFile class="form-control" OnChange="SelectedPhoto" accept="image/*" />
+                        @if (!string.IsNullOrEmpty(previewUrl))
+                        {
+                            <img src="@previewUrl" class="img-thumbnail mt-2" style="height:120px; width:120px; object-fit:cover;" />
+                        }
+                    </div>
+
+                    <button class="btn btn-dark w-100" @onclick="Create" disabled="@iscreating">
+                        @(iscreating ? "Создание..." : "Создать")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    CreateUserModel model = new();
+    bool iscreating = false;
+    string error = " ";
+    string? previewUrl;
+    List<SpecModel> specModels = new();
+    IBrowserFile file;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authstate = await state.GetAuthenticationStateAsync();
+        var user = authstate.User;
+        var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+        if(role != "Admin")
+        {
+            nav.NavigateTo("/");
+        }
+
+        await GetSpeces();
+    }
+
+    async Task Create()
+    {
+        try
+        {
+            iscreating = true;
+            await userService.AddNewUser(model);
+        }
+        catch
+        {
+            error = "Error";
+            return;
+        }
+        finally
+        {
+            iscreating = false;
+        }
+    }
+
+    async Task GetSpeces()
+    {
+        try
+        {
+            specModels = await specService.GetSpeces();
+        }
+        catch(Exception ex)
+        {
+            error = $"{ex.Message}";
+        }
+    }
+
+    async Task SelectedPhoto(InputFileChangeEventArgs photo)
+    {
+        file = photo.File;
+
+        model.photo = file;
+
+        try
+        {
+            using var stream = file.OpenReadStream();
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            previewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

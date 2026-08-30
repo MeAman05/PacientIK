@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Project/">
+    <Project Path="PacientIK.Application/PacientIK.Application.csproj" />
+    <Project Path="PacientIK.Domain/PacientIK.Domain.csproj" />
+    <Project Path="PacientIK.Infrastructure/PacientIK.Infrastructure.csproj" />
+    <Project Path="PacientIK/PacientIK.csproj" />
+  </Folder>
+  <Folder Name="/WebSite/">
+    <Project Path="PacientikWebSite/PacientikWebSite.csproj" Id="a9f1f4a8-acb5-431a-9693-a9136d659380" />
+  </Folder>
+</Solution>
