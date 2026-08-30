@@ -20,7 +20,7 @@ namespace PacientIK.Infrastructure.Repositories
 
         public async Task ChangeReport(int id, Report report, List<int> newLechIds)
         {
-            var currentreport = await context.Reports.FirstOrDefaultAsync(r => r.Id == id);
+            var currentreport = await context.Reports.Include(r => r.Leches).FirstOrDefaultAsync(r => r.Id == id);
             
             if(currentreport != null)
             {
