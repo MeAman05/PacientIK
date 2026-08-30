@@ -97,19 +97,39 @@ else
         <MudPaper Class="pa-4 rounded-xl" Style="max-width:350px" Elevation="0">
             <MudStack Spacing="2">
                 <MudText Typo="Typo.h6">Редактирование</MudText>
-                <MudTextField @bind-Value="selected.pacientname" Label="Пациент" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+                <MudTextField @bind-Value="selected.pacientname"
+                              Label="Пациент"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Disabled="@isupdating" />
+
                 <MudGrid Spacing="1">
-                    <MudItem xs="6"><MudNumericField @bind-Value="selected.price" Label="Цена" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
-                    <MudItem xs="6"><MudTextField @bind-Value="selected.period" Label="Период" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
+                    <MudItem xs="6">
+                        <MudNumericField @bind-Value="selected.price"
+                                         Label="Цена"
+                                         Variant="Variant.Outlined"
+                                         Margin="Margin.Dense"
+                                         Disabled="@isupdating" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudNumericField @bind-Value="selected.period"
+                                         Label="Период"
+                                         Variant="Variant.Outlined"
+                                         Margin="Margin.Dense"
+                                         Disabled="@isupdating" />
+                    </MudItem>
                 </MudGrid>
 
                 <MudSelect T="int"
                            MultiSelection="true"
                            SelectedValues="selected.lechids"
                            SelectedValuesChanged="OnLechChanged"
-                           Label="Врачи"
+                           Label="Лечения"
                            Variant="Variant.Outlined"
-                           Margin="Margin.Dense" Dense="true">
+                           Margin="Margin.Dense"
+                           Dense="true"
+                           Disabled="@isupdating">
                     @foreach (var l in lechmodels)
                     {
                         <MudSelectItem Value="@l.Id">@l.Name</MudSelectItem>
@@ -117,8 +137,16 @@ else
                 </MudSelect>
 
                 <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-2">
-                    <MudButton OnClick="@(() => selected = null)" Size="Size.Small">Отмена</MudButton>
-                    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => ChangeReport(currentid))" Loading="@isupdating" Size="Size.Small">Сохранить</MudButton>
+                    <MudButton OnClick="@(() => selected = null)"
+                               Size="Size.Small"
+                               Disabled="@isupdating">Отмена</MudButton>
+
+                    <MudButton Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               OnClick="@(() => ChangeReport(currentid))"
+                               Loading="@isupdating"
+                               Disabled="@isupdating"
+                               Size="Size.Small">Сохранить</MudButton>
                 </MudStack>
             </MudStack>
         </MudPaper>
