@@ -74,10 +74,10 @@ app.UseAuthorization();
 
 app.MapControllers().RequireCors("AllowAll");
 
-app.MapGroup("api/user").UserMapEndpoiint();
-app.MapGroup("api/login").LoginMapEndoint();
-app.MapGroup("api/doc").ReportMapEndpoint();
-app.MapGroup("api/spec").SpecMapEndoint();
-app.MapGroup("api/lech").LechMapEndpoint();
+app.MapGroup("api/user").RequireCors("AllowAll").UserMapEndpoiint();
+app.MapGroup("api/login").RequireCors("AllowAll").LoginMapEndoint();
+app.MapGroup("api/doc").RequireCors("AllowAll").ReportMapEndpoint();
+app.MapGroup("api/spec").RequireCors("AllowAll").SpecMapEndoint();
+app.MapGroup("api/lech").RequireCors("AllowAll").LechMapEndpoint();
 
 app.Run();
