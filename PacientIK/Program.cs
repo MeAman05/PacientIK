@@ -62,16 +62,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(@"D:\photos\Pc"),
-    RequestPath = "/photo"
-});
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(@"D:\docs\docs"),
-    RequestPath = "/doc"
-});
+
 app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
