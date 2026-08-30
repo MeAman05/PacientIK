@@ -15,7 +15,7 @@ namespace PacientIK.Endpoitns
             app.MapGet("/getallreports", GetAllReports).RequireAuthorization(r => r.RequireRole("Admin", "Checker")).CacheOutput(t => t.Expire(TimeSpan.FromMinutes(5)).Tag("reps"));
             app.MapGet("/getownreports", GetOwnReports).RequireAuthorization(r => r.RequireRole("Checker","Admin", "User")).CacheOutput(t => t.Expire(TimeSpan.FromMinutes(5)).Tag("ownreps"));
             app.MapGet("/getreportbyid/{id:int}",GetReportById).RequireAuthorization(r => r.RequireRole("User", "Checker", "Admin")).CacheOutput(t => t.Expire(TimeSpan.FromMinutes(5)).Tag("repid"));
-            app.MapPatch("/update/{id:int}", UpdareReport).RequireAuthorization(r => r.RequireRole("User", "Checker", "Admin"));
+            app.MapPatch("/update/{id:int}", UpdareReport).RequireAuthorization();
             app.MapDelete("/delete/{id:int}", DeleteReport).RequireAuthorization(r => r.RequireRole("User", "Checker", "Admin"));
             app.MapPost("/addreport", AddReport).RequireAuthorization(r => r.RequireRole("User", "Checker", "Admin"));
         }
