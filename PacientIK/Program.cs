@@ -42,7 +42,7 @@ builder.Services.AddCors(options =>
             "https://localhost:7211",
             "http://localhost:5211",
             "https://localhost:7000",
-            "https://pacientikwebsite.onrender.com" 
+            "https://pacientik.onrender.com" 
         )
         .SetIsOriginAllowed(_ => true) 
         .AllowAnyHeader()
