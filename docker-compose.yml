@@ -4,3 +4,17 @@ services:
     build:
       context: .
       dockerfile: PacientIK/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+
+  pacientikwebsite:
+    image: ${DOCKER_REGISTRY-}pacientikwebsite
+    build:
+      context: .
+      dockerfile: PacientikWebSite/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - pacientik
