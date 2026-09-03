@@ -7,13 +7,9 @@ RUN dotnet restore PacientikWebSite.csproj
 COPY . ./
 RUN dotnet publish PacientikWebSite.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
 
-# ”ƒјЋя≈ћ сжатые файлы чтобы не ломать SRI проверку
-RUN rm -f /app/publish/wwwroot/_framework/*.gz \
-          /app/publish/wwwroot/_framework/*.br \
-          /app/publish/wwwroot/_framework/*.gz.* \
-          /app/publish/wwwroot/*.gz \
-          /app/publish/wwwroot/*.br && \
-    sed -i 's/#\[.{fingerprint}\]//g' /app/publish/wwwroot/index.html || true
+# проверка что теперь файлы Ѕ≈« хешей
+RUN ls /app/publish/wwwroot/_framework/ | head -20 && \
+    cat /app/publish/wwwroot/index.html | grep _framework
 
 FROM nginx:alpine
 COPY --from=build /app/publish/wwwroot/ /usr/share/nginx/html/
