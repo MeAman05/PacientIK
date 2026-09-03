@@ -53,6 +53,7 @@ namespace PacientikWebSite.Services
             var authState = await state.GetAuthenticationStateAsync();
             var user = authState.User;
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
+            var myuid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (role != "Admin")
             {
@@ -65,7 +66,7 @@ namespace PacientikWebSite.Services
                 var response = await http.SendAsync(request);
 
                 var result = await response.Content.ReadFromJsonAsync<List<UserModel>>();
-
+                result.RemoveAll(u => u.userid == Guid.Parse(myuid));
                 return result;
             }
             catch(HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized) 

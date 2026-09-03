@@ -68,7 +68,7 @@ namespace PacientIK.Infrastructure.Repositories
 
 
 
-        public async Task<List<Report>> GetOwnReports(Guid uid, string? name)
+        public async Task<List<Report>> GetOwnReports(Guid uid, string? name, int lechid)
         {
             var ownreport = context.Reports.Include(i => i.Sender).Include(i => i.Leches).AsNoTracking();
 
@@ -78,7 +78,10 @@ namespace PacientIK.Infrastructure.Repositories
             {
                 ownreport = ownreport.Where(r => r.PacientName.Trim().ToLower().Contains(name.Trim().ToLower()));
             }
-
+            if(lechid != 0)
+            {
+                ownreport = ownreport.Where(r => r.Leches.Any(l => l.Id == lechid));
+            }
             return await ownreport.ToListAsync();
         }
 

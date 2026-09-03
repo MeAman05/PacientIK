@@ -38,9 +38,9 @@ namespace PacientikWebSite.Services
             }
         }
 
-        public async Task<List<ReportModel>> GetOnwReports(string? name)
+        public async Task<List<ReportModel>> GetOnwReports(string? name, int lechid)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"/api/doc/getownreports?name={name}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"/api/doc/getownreports?name={name}&lechid={lechid}");
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
             var response = await _httpClient.SendAsync(request);
@@ -106,7 +106,6 @@ namespace PacientikWebSite.Services
             }
         }
 
-
         public async Task DeleteReport(int id)
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/doc/delete/{id}");
@@ -117,6 +116,22 @@ namespace PacientikWebSite.Services
             {
                 throw new Exception(response.StatusCode.ToString());
             }
+        }
+
+        public async Task<List<ReportModel>> GetReportsById(Guid id, string name, int lechid)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"/api/doc/getreps/{id}?name={name}&lechid={lechid}");
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(response.StatusCode.ToString());
+            }
+
+            var model = await response.Content.ReadFromJsonAsync<List<ReportModel>>();
+
+            return model;
         }
     }
 }

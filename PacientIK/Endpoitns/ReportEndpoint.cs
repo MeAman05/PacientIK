@@ -14,6 +14,7 @@ namespace PacientIK.Endpoitns
         {
             app.MapGet("/getallreports", GetAllReports).RequireAuthorization(r => r.RequireRole("Admin", "Checker")).CacheOutput(t => t.Expire(TimeSpan.FromMinutes(5)).Tag("reps"));
             app.MapGet("/getownreports", GetOwnReports).RequireAuthorization(r => r.RequireRole("Checker","Admin", "User")).CacheOutput(t => t.Expire(TimeSpan.FromMinutes(5)).Tag("ownreps"));
+            app.MapGet("/getreps/{uid:guid}", GetReportsById).RequireAuthorization(r => r.RequireRole("Admin","Checker")).CacheOutput(t => t.Expire(TimeSpan.FromMinutes(5)).Tag("idreps"));
             app.MapGet("/getreportbyid/{id:int}",GetReportById).RequireAuthorization(r => r.RequireRole("User", "Checker", "Admin")).CacheOutput(t => t.Expire(TimeSpan.FromMinutes(5)).Tag("repid"));
             app.MapPatch("/update/{id:int}", UpdareReport).RequireAuthorization();
             app.MapDelete("/delete/{id:int}", DeleteReport).RequireAuthorization(r => r.RequireRole("User", "Checker", "Admin"));
@@ -28,9 +29,9 @@ namespace PacientIK.Endpoitns
             return Results.Ok(reports);
         }
 
-        public static async Task<IResult> GetOwnReports(ISender sender, string? name)
+        public static async Task<IResult> GetOwnReports(ISender sender, string? name, int lechid)
         {
-            var ownreports = await sender.Send(new GetOwnReport(name));
+            var ownreports = await sender.Send(new GetOwnReport(name,lechid));
 
             return Results.Ok(ownreports);
         }
@@ -47,6 +48,7 @@ namespace PacientIK.Endpoitns
             var update = await sender.Send(new UpdateReportCommand(dTO, id));
             await cache.EvictByTagAsync("reps", new CancellationToken());
             await cache.EvictByTagAsync("ownreps", new CancellationToken());
+            await cache.EvictByTagAsync("idreps", new CancellationToken());
             await cache.EvictByTagAsync("repid", new CancellationToken());
             return Results.Ok(update);
         }
@@ -56,6 +58,7 @@ namespace PacientIK.Endpoitns
             await sender.Send(new DeleteReportCommand(id));
             await cache.EvictByTagAsync("reps", new CancellationToken());
             await cache.EvictByTagAsync("ownreps", new CancellationToken());
+            await cache.EvictByTagAsync("idreps", new CancellationToken());
             await cache.EvictByTagAsync("repid", new CancellationToken());
             return Results.Ok("Удалено");
         }
@@ -65,7 +68,15 @@ namespace PacientIK.Endpoitns
             var result = await sender.Send(new AddReportCommand(dTO));
             await cache.EvictByTagAsync("reps", new CancellationToken());
             await cache.EvictByTagAsync("ownreps", new CancellationToken());
+            await cache.EvictByTagAsync("idreps", new CancellationToken());
             await cache.EvictByTagAsync("repid", new CancellationToken());
+            return Results.Ok(result);
+        }
+
+        public static async Task<IResult> GetReportsById(ISender sender, Guid uid, string? name, int lechid)
+        {
+            var result = await sender.Send(new GetReportsByIdUser(uid, name, lechid));
+
             return Results.Ok(result);
         }
     }

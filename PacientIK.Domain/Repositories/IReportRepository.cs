@@ -12,6 +12,6 @@ namespace PacientIK.Domain.Repositories
         Task AddReport(Report report, List<int> lechIds);
         Task DeleteReport(int Id);
         Task ChangeReport(int id, Report report, List<int> newLechIds);
-        Task<List<Report>> GetOwnReports(Guid uid, string? name);
+        Task<List<Report>> GetOwnReports(Guid uid, string? name, int lechid);
     }
 }

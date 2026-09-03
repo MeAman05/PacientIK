@@ -1,0 +1,198 @@
+﻿@page "/userreps/{id:guid}"
+@using PacientikWebSite.Models.ReportModels
+@using PacientikWebSite.Models.Lech
+@using PacientikWebSite.Services
+@inject ReportService service
+@inject LechService lechService
+
+<h3>UserReportsById</h3>
+
+@if (isloading)
+{
+    <div class="d-flex justify-content-center mt-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+}
+else if (!reportModels.Any())
+{
+    <div class="container py-4">
+        <div class="search-card">
+            <div class="row g-3 align-items-end">
+                <!-- Поиск -->
+                <div class="col-md-8">
+                    <label class="form-label search-label">Поиск</label>
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-input-icon"></i>
+                        <input type="text"
+                               class="form-control search-input-modern"
+                               placeholder="Введите название отчета, пациента..."
+                               @bind="name"
+                               @bind:event="oninput"
+                               @onkeyup="EnterKey" />
+                        @if (!string.IsNullOrEmpty(name))
+                        {
+                            <button class="clear-btn" @onclick="() => { name = string.Empty; }">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Лечение -->
+                <div class="col-md-3">
+                    <label class="form-label search-label">Лечение</label>
+                    <div class="select-wrapper">
+                        <select class="form-select search-select-modern" @bind="lechid">
+                            <option value="0">Все лечения</option>
+                            @foreach (var lech in LechModels)
+                            {
+                                <option value="@lech.Id">@lech.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Кнопка -->
+                <div class="col-md-1 d-grid">
+                    <button class="btn btn-primary search-btn" @onclick="GetReports">
+                        <i class="fas fa-search me-md-0 me-2"></i>
+                        <span class="d-md-none">Найти</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-info mt-3">Отчетов пока нет</div>
+}
+else
+{
+    <div class="container py-4">
+        <div class="search-card">
+            <div class="row g-3 align-items-end">
+                <!-- Поиск -->
+                <div class="col-md-8">
+                    <label class="form-label search-label">Поиск</label>
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-input-icon"></i>
+                        <input type="text"
+                        class="form-control search-input-modern"
+                        placeholder="Введите название отчета, пациента..."
+                        @bind="name"
+                        @bind:event="oninput"
+                        @onkeyup="EnterKey" />
+                        @if (!string.IsNullOrEmpty(name))
+                        {
+                            <button class="clear-btn" @onclick="() => { name = string.Empty; }">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Лечение -->
+                <div class="col-md-3">
+                    <label class="form-label search-label">Лечение</label>
+                    <div class="select-wrapper">
+                        <select class="form-select search-select-modern" @bind="lechid">
+                            <option value="0">Все лечения</option>
+                            @foreach (var lech in LechModels)
+                            {
+                                <option value="@lech.Id">@lech.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Кнопка -->
+                <div class="col-md-1 d-grid">
+                    <button class="btn btn-primary search-btn" @onclick="GetReports">
+                        <i class="fas fa-search me-md-0 me-2"></i>
+                        <span class="d-md-none">Найти</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-hover table-bordered align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Пациент</th>
+                    <th>Врач</th>
+                    <th>Лечение</th>
+                    <th>Период</th>
+                    <th>Цена</th>
+                    <th> </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in reportModels)
+                {
+                    <tr>
+                        <td>@item.pacientname</td>
+                        <td>@item.sender</td>
+                        <td>
+                            @foreach (var lechName in item.leches)
+                            {
+                                <span class="badge bg-primary me-1">@lechName</span>
+                            }
+                        </td>
+                        <td>@item.period дней</td>
+                        <td>@item.price.ToString("N2") сом</td>
+                        <td><a href="/report/@item.id" class="btn btn-warning">Посмотреть</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div>
+    </div>
+}
+@code {
+    [Parameter] public Guid id { get; set; }
+    List<ReportModel> reportModels = new();
+    List<LechModel> LechModels = new();
+    bool isloading = false;
+    string name = "";
+    int lechid = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetLeches();
+        await GetReports();
+    }
+
+    async Task GetLeches()
+    {
+        LechModels = await lechService.GetLeches();
+    }
+
+    async Task GetReports()
+    {
+        try
+        {
+            isloading = true;
+            reportModels = await service.GetReportsById(id, name, lechid);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return;
+        }
+        finally
+        {
+            isloading = false;
+        }
+    }
+
+    async Task EnterKey(KeyboardEventArgs e)
+    {
+        if(e.Key == "Enter")
+        {
+            await GetReports();
+        }
+    }
+}

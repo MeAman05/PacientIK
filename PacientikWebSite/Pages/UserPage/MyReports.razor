@@ -30,12 +30,49 @@ else if (!models.Any())
 }
 else
 {
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="search-container">
-                    <input type="text" class="form-control search-input" placeholder="Search..." @bind="name" @bind:event="oninput" @onkeyup="EnterKey">
-                    <i class="fas fa-search search-icon" @onclick="GetReports"></i>
+    <div class="container py-4">
+        <div class="search-card">
+            <div class="row g-3 align-items-end">
+                <!-- Поиск -->
+                <div class="col-md-8">
+                    <label class="form-label search-label">Поиск</label>
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-input-icon"></i>
+                        <input type="text"
+                               class="form-control search-input-modern"
+                               placeholder="Введите название отчета, пациента..."
+                               @bind="name"
+                               @bind:event="oninput"
+                               @onkeyup="EnterKey" />
+                        @if (!string.IsNullOrEmpty(name))
+                        {
+                            <button class="clear-btn" @onclick="() => { name = string.Empty; }">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Лечение -->
+                <div class="col-md-3">
+                    <label class="form-label search-label">Лечение</label>
+                    <div class="select-wrapper">
+                        <select class="form-select search-select-modern" @bind="lechid">
+                            <option value="0">Все лечения</option>
+                            @foreach (var lech in lechmodels)
+                            {
+                                <option value="@lech.Id">@lech.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Кнопка -->
+                <div class="col-md-1 d-grid">
+                    <button class="btn btn-primary search-btn" @onclick="GetReports">
+                        <i class="fas fa-search me-md-0 me-2"></i>
+                        <span class="d-md-none">Найти</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -161,6 +198,7 @@ else
     bool isupdating = false;
     bool isdeleting = false;
     string name = "";
+    int lechid = 0;
     string Lech = "";
     int currentid { get; set; }
     protected override async Task OnInitializedAsync()
@@ -177,7 +215,7 @@ else
         try
         {
             isloading = true;
-            models = await service.GetOnwReports(name);
+            models = await service.GetOnwReports(name,lechid);
         }
         catch(Exception ex)
         {

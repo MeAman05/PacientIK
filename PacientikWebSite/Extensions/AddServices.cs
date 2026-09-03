@@ -13,7 +13,7 @@ namespace PacientikWebSite.Extensions
            
             services.AddHttpClient("Client", client =>
             {
-                client.BaseAddress = new Uri("https://pacientik.onrender.com");
+                client.BaseAddress = new Uri("https://localhost:7230");
             });
             services.AddScoped<LoginService>();
             services.AddScoped<UserService>();

@@ -10,7 +10,7 @@ using static System.Net.WebRequestMethods;
 
 namespace PacientIK.Application.Queries.Reports
 {
-    public record GetOwnReport(string? name) : IRequest<List<ReportDTO>>;
+    public record GetOwnReport(string? name, int lechid) : IRequest<List<ReportDTO>>;
 
     public class GetOwnReportHandler(IReportRepository repository, IHttpContextAccessor accessor) : IRequestHandler<GetOwnReport, List<ReportDTO>>
     {
@@ -19,7 +19,7 @@ namespace PacientIK.Application.Queries.Reports
             var user = accessor.HttpContext.User;
             var myid = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-            var rep = await repository.GetOwnReports(myid,req.name);
+            var rep = await repository.GetOwnReports(myid,req.name, req.lechid);
             return rep.Select(m => m.ToReportDTO()).ToList();
         }
     }

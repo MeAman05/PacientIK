@@ -48,7 +48,7 @@ else
                     <td>
                         <div class="btn-group btn-group-sm" role="group">
                             <a href="/edit/@model.userid" class="btn btn-warning @(isdeleteing ? "disabled" : "")">Изменить</a>
-
+                            <a href="/userbyid/@model.userid" class="btn btn-warning @(isdeleteing ? "disabled" : "")">Посмотреть</a>
                             <button class="btn btn-danger" @onclick="() => DeleteUser(model.userid)" disabled="@isdeleteing">
                                 @if (isdeleteing)
                                 {
