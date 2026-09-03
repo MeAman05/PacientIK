@@ -1,11 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# better caching
-COPY PacientikWebSite.csproj./
+COPY PacientikWebSite.csproj ./
 RUN dotnet restore PacientikWebSite.csproj
 
-COPY..
+COPY . ./
 RUN dotnet publish PacientikWebSite.csproj \
     -c Release \
     -o /app/publish \
@@ -13,7 +12,9 @@ RUN dotnet publish PacientikWebSite.csproj \
     /p:UseAppHost=false
 
 FROM nginx:alpine
+
 COPY --from=build /app/publish/wwwroot/ /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
