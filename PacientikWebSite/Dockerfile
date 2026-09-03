@@ -5,15 +5,16 @@ COPY PacientikWebSite.csproj ./
 RUN dotnet restore PacientikWebSite.csproj
 
 COPY . ./
-RUN dotnet publish PacientikWebSite.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
+RUN dotnet publish PacientikWebSite.csproj -c Release -o /app/publish
 
-# проверка
-RUN ls /app/publish/wwwroot/_framework/ | head -20
-RUN cat /app/publish/wwwroot/index.html | grep _framework
+FROM nginx:alpine AS final
+WORKDIR /usr/share/nginx/html
 
-FROM nginx:alpine
-RUN rm /etc/nginx/conf.d/default.conf
-COPY --from=build /app/publish/wwwroot/ /usr/share/nginx/html/
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy the static assets from the build stage
+COPY --from=build /app/publish/wwwroot .
+
+# Copy custom Nginx configuration for client-side routing
+COPY nginx.conf /etc/nginx/nginx.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
