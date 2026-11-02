@@ -6,6 +6,7 @@
     <Project Path="PacientIK/PacientIK.csproj" />
   </Folder>
   <Folder Name="/WebSite/">
+    <Project Path="../MVCC/MVCC.csproj" Id="757aa474-a438-4d55-93f4-cdca8fea6fd4" />
     <Project Path="PacientikWebSite/PacientikWebSite.csproj" Id="a9f1f4a8-acb5-431a-9693-a9136d659380" />
   </Folder>
   <Project Path="docker-compose.dcproj">

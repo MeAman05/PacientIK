@@ -54,6 +54,8 @@ namespace PacientIK.Endpoitns
                     SameSite = SameSiteMode.None,
                 });
 
+           
+
             return Results.Ok(session);
         }
         public static async Task<IResult> Logout(string? txt, HttpContext http, IOutputCacheStore cache)

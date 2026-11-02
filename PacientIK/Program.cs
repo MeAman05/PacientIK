@@ -40,6 +40,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", p => p
         .WithOrigins(
             "https://localhost:7211",
+            "http://localhost:5173",
             "http://localhost:5211",
             "https://localhost:7000",
             "https://pacientik.onrender.com" 
